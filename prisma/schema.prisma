@@ -4,7 +4,7 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
 }
 
 enum Role {
@@ -25,7 +25,7 @@ model User {
   updatedAt    DateTime    @updatedAt
 }
 
-/
+
 /// ข้อมูลสินค้าสำหรับระบบจัดการสินค้า
 model Product {
   id        String   @id @default(cuid())
@@ -34,6 +34,7 @@ model Product {
   category  String
   price     Int
   quantity  Int      @default(0)
+  imageUrl  String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

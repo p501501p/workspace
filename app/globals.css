@@ -1,5 +1,7 @@
+/* โหลด utility classes ของ Tailwind CSS */
 @import "tailwindcss";
 
+/* กำหนดฟอนต์พื้นฐานให้กับข้อความทั่วทั้งเว็บไซต์ */
 body {
   font-family: Arial, Helvetica, sans-serif;
 }
