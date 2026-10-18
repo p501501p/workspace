@@ -169,3 +169,12 @@ prisma/
   migrations-postgres/    migrations สำหรับ PostgreSQL
 ```
 
+
+
+
+
+## link
+https://workspace-26dibv64c-p501501ps-projects.vercel.app/products
+https://github.com/p501501p/workspace
+https://console.neon.tech/app/projects/rough-sound-77604105/branches/br-morning-water-aol6dgoq/tables?database=neondb
+https://vercel.com/p501501ps-projects/workspace/settings/environment-variables
