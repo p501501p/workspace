@@ -2,41 +2,21 @@ import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import GitHub from "next-auth/providers/github";
 import bcrypt from "bcryptjs";
-
 import prisma from "@/app/lib/prisma";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   providers: [
-    // ==========================================
-    // Login ด้วย Email / Password
-    // ==========================================
     Credentials({
-      credentials: {
-        email: {},
-        password: {},
-      },
-
+      credentials: { email: {}, password: {} },
       async authorize(credentials) {
-        if (!credentials?.email || !credentials?.password) {
-          return null;
-        }
+        if (!credentials?.email || !credentials?.password) return null;
 
-        const email = credentials.email as string;
-        const password = credentials.password as string;
-
+        // ยืนยันรหัสผ่านโดยเทียบกับ hash ที่เก็บไว้ ไม่เปรียบเทียบรหัสผ่านดิบ
         const user = await prisma.user.findUnique({
-          where: {
-            email,
-          },
+          where: { email: String(credentials.email) },
         });
 
-        if (!user) {
-          return null;
-        }
-
-        const passwordValid = await bcrypt.compare(password, user.passwordHash);
-
-        if (!passwordValid) {
+        if (!user || !(await bcrypt.compare(String(credentials.password), user.passwordHash))) {
           return null;
         }
 
@@ -48,59 +28,29 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         };
       },
     }),
-
-    // ==========================================
-    // Login ด้วย GitHub
-    // ==========================================
     GitHub({
       clientId: process.env.AUTH_GITHUB_ID,
       clientSecret: process.env.AUTH_GITHUB_SECRET,
     }),
   ],
-
   callbacks: {
-    // ==========================================
-    // JWT
-    // ==========================================
     async jwt({ token, user }) {
       if (user) {
+        // เก็บรหัสผู้ใช้และ role ไว้ใน token สำหรับตรวจสอบสิทธิ์ภายหลัง
         token.id = user.id;
-
-        // Credentials มี role
-        if (user.role) {
-          token.role = user.role;
-        }
-
-        // GitHub user ไม่มี role จาก Credentials
-        // ให้ USER เป็นค่าเริ่มต้น
-        if (!token.role) {
-          token.role = "USER";
-        }
+        token.role = user.role ?? "USER";
       }
-
       return token;
     },
-
-    // ==========================================
-    // Session
-    // ==========================================
     async session({ session, token }) {
       if (session.user) {
+        // ส่ง id และ role เข้า session เพื่อใช้ตรวจสิทธิ์ในหน้าและ API
         session.user.id = token.id as string;
-
-        const role = (token.role as "ADMIN" | "STAFF" | "USER") || "USER";
-        session.user.role = role;
+        session.user.role = (token.role as "ADMIN" | "STAFF" | "USER") ?? "USER";
       }
-
       return session;
     },
   },
-
-  pages: {
-    signIn: "/login",
-  },
-
-  session: {
-    strategy: "jwt",
-  },
+  pages: { signIn: "/login" },
+  session: { strategy: "jwt" },
 });

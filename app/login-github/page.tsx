@@ -1,27 +1,19 @@
-import { redirect } from "next/navigation";
-import { auth, signIn } from "@/app/auth";
+import { signIn } from "@/app/auth";
 
-export default async function LoginPage() {
-  // const session = await auth()
-  // if (session?.user) redirect('/')
-
+export default function GithubLoginPage() {
   return (
-    <main className="mx-auto max-w-md px-5 py-20">
-      <section className="rounded-2xl border bg-white p-8 shadow-sm">
-        <h1 className="text-3xl font-bold">Members Only</h1>
-        <p className="mt-3 text-slate-600">เข้าสู่ระบบด้วย github</p>
-
-        <form
-          action={async () => {
-            "use server";
-            await signIn("github", { redirectTo: "/" });
-          }}
-        >
-          <button className="mt-8 w-full rounded-lg bg-slate-950 px-5 py-3 font-medium text-white">
-            Continue with GitHub
-          </button>
-        </form>
-      </section>
+    <main className="mx-auto mt-16 max-w-md rounded border bg-white p-6">
+      <h1 className="text-2xl font-bold">เข้าสู่ระบบด้วย GitHub</h1>
+      <form
+        action={async () => {
+          "use server";
+          await signIn("github", { redirectTo: "/products" });
+        }}
+      >
+        <button className="mt-4 rounded bg-slate-900 px-4 py-2 text-white">
+          เข้าสู่ระบบ
+        </button>
+      </form>
     </main>
   );
 }
