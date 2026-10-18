@@ -2,6 +2,7 @@
 
 import { useEffect, useState, type FormEvent } from "react";
 import Image from "next/image";
+import { productSchema } from "@/app/lib/validation";
 
 type Product = {
   // id ใช้เป็น key ภายใน React; code เป็นรหัสสินค้าที่ผู้ใช้เห็น
@@ -127,6 +128,11 @@ export default function ProductsClient({ isAdmin }: { isAdmin: boolean }) {
       quantity: Number(data.get("quantity")),
       imageUrl: data.get("imageUrl")?.toString().trim() || null,
     };
+    const validation = productSchema.safeParse(product);
+    if (!validation.success) {
+      setMessage(validation.error.issues[0].message);
+      return;
+    }
 
     try {
       // CREATE ใช้ POST; UPDATE ใช้ PUT เมื่อกำลังแก้ไขสินค้าเดิม
@@ -135,7 +141,7 @@ export default function ProductsClient({ isAdmin }: { isAdmin: boolean }) {
         {
           method: editing ? "PUT" : "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(product),
+          body: JSON.stringify(validation.data),
         },
       );
       const result = await response.json();

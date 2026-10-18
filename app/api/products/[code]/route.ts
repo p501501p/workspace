@@ -1,5 +1,6 @@
 import { auth } from "@/app/auth";
 import prisma from "@/app/lib/prisma";
+import { productSchema } from "@/app/lib/validation";
 import { NextResponse } from "next/server";
 
 type Context = { params: Promise<{ code: string }> };
@@ -21,52 +22,6 @@ export async function GET(_request: Request, { params }: Context) {
   }
 
   return NextResponse.json({ product });
-}
-
-// ตรวจสอบข้อมูลที่ใช้สร้างหรือแก้ไขสินค้าให้ตรงตามรูปแบบที่ API รองรับ
-function isProduct(data: unknown): data is {
-  code: string;
-  name: string;
-  category: string;
-  price: number;
-  quantity: number;
-  imageUrl?: string | null;
-} {
-  // ตรวจข้อมูลสินค้าฝั่งเซิร์ฟเวอร์ก่อนแก้ไข
-  if (typeof data !== "object" || data === null) return false;
-
-  const product = data as Record<string, unknown>;
-  return (
-    typeof product.code === "string" &&
-    product.code.trim().length > 0 &&
-    product.code.trim().length <= 30 &&
-    typeof product.name === "string" &&
-    product.name.trim().length > 0 &&
-    product.name.trim().length <= 100 &&
-    typeof product.category === "string" &&
-    product.category.trim().length > 0 &&
-    product.category.trim().length <= 50 &&
-    Number.isInteger(product.price) &&
-    (product.price as number) >= 0 &&
-    Number.isInteger(product.quantity) &&
-    (product.quantity as number) >= 0 &&
-    isOptionalImageUrl(product.imageUrl)
-  );
-}
-
-// ตรวจสอบ URL รูปภาพที่ส่งมา; อนุญาตเว้นว่างได้และจำกัดเฉพาะ HTTP/HTTPS
-function isOptionalImageUrl(value: unknown): value is string | null | undefined {
-  if (value === undefined || value === null) return true;
-  if (typeof value !== "string" || value.trim().length > 2048) return false;
-  if (value.trim() === "") return true;
-
-  try {
-    const url = new URL(value);
-    return url.protocol === "http:" || url.protocol === "https:";
-  } catch {
-    // ข้อความที่แปลงเป็น URL ไม่ได้ถือว่าไม่ถูกต้อง
-    return false;
-  }
 }
 
 // PUT /api/products/[code]: แก้ไขรายละเอียดสินค้าตาม code ใน URL
@@ -91,9 +46,11 @@ export async function PUT(request: Request, { params }: Context) {
     return NextResponse.json({ error: "รูปแบบข้อมูลไม่ถูกต้อง" }, { status: 400 });
   }
   // ตรวจว่าข้อมูลสินค้ามีชนิดและค่าที่ถูกต้องก่อนนำไปใช้แก้ไข
-  if (!isProduct(data)) {
-    return NextResponse.json({ error: "กรุณากรอกข้อมูลสินค้าให้ถูกต้อง" }, { status: 400 });
+  const validation = productSchema.safeParse(data);
+  if (!validation.success) {
+    return NextResponse.json({ error: validation.error.issues[0].message }, { status: 400 });
   }
+  const productData = validation.data;
 
   // ค้นหาสินค้าปัจจุบันด้วยรหัสที่อยู่ใน URL
   const { code: productCode } = await params;
@@ -104,7 +61,7 @@ export async function PUT(request: Request, { params }: Context) {
   }
 
   // ตรวจว่ารหัสใหม่ไม่ซ้ำกับสินค้าอื่น (ยกเว้นสินค้ารายการนี้เอง)
-  const code = data.code.trim();
+  const code = productData.code;
   const duplicate = await prisma.product.findFirst({
     where: { code, NOT: { id: product.id } },
   });
@@ -117,11 +74,11 @@ export async function PUT(request: Request, { params }: Context) {
     where: { id: product.id },
     data: {
       code,
-      name: data.name.trim(),
-      category: data.category.trim(),
-      price: data.price,
-      quantity: data.quantity,
-      imageUrl: typeof data.imageUrl === "string" && data.imageUrl.trim() ? data.imageUrl.trim() : null,
+      name: productData.name,
+      category: productData.category,
+      price: productData.price,
+      quantity: productData.quantity,
+      imageUrl: productData.imageUrl ?? null,
     },
   });
 
