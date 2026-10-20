@@ -20,7 +20,7 @@ export async function signUp(_previous: SignUpState, formData: FormData): Promis
   if (!name || !email || !password || !confirmPassword) {
     return { error: "กรุณากรอกข้อมูลให้ครบถ้วน" };
   }
-  if (password.length < 6) return { error: "รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร" };
+  if (password.length < 6 || password.length > 20) return { error: "รหัสผ่านต้องมีความยาวระหว่าง 6 ถึง 20 ตัวอักษร" };
   if (password !== confirmPassword) return { error: "รหัสผ่านไม่ตรงกัน" };
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
     return { error: "รูปแบบ Email ไม่ถูกต้อง" };
