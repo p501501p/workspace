@@ -119,6 +119,8 @@ Stockroom เป็นเว็บแอปพลิเคชันสำหร�
 
    `DATABASE_URL` ใช้เชื่อมต่อจากแอปผ่าน Neon adapter ส่วน `DATABASE_URL_UNPOOLED` ใช้โดย Prisma CLI ตามการตั้งค่าใน `prisma7.config.ts` ค่า GitHub OAuth ใช้เฉพาะเมื่อต้องการเปิดการเข้าสู่ระบบผ่าน GitHub
 
+   หากใช้ GitHub login ให้ตั้งค่า **Authorization callback URL** ใน GitHub OAuth App ให้ตรงกับโดเมนที่เปิดแอปและใช้ path `/api/auth/callback/github` เช่น `https://workspace-murex-psi-93.vercel.app/api/auth/callback/github` สำหรับ URL ที่กำลังใช้งานอยู่ หาก URL นี้เป็นโดเมนชั่วคราวของ deployment ให้ใช้โดเมน production ที่คงที่แทน และตั้ง callback URL ใน GitHub ให้ตรงกับโดเมนนั้น
+
 4. นำ migrations ไปใช้กับฐานข้อมูล:
 
    ```powershell

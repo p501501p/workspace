@@ -36,7 +36,7 @@ export default function LoginPage() {
 
   // เริ่มขั้นตอน OAuth ของ GitHub และกลับมาที่หน้าสินค้าหลังสำเร็จ
   async function loginWithGitHub() {
-    await signIn("github", { callbackUrl: "/products" });
+    await signIn("github", { redirectTo: "/products" });
   }
 
   return (
