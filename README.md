@@ -145,41 +145,54 @@ Stockroom เป็นเว็บแอปพลิเคชันสำหร�
 4. ผู้ดูแลระบบสามารถใช้แบบฟอร์มบนหน้ารายการสินค้าเพื่อเพิ่มหรือแก้ไขสินค้า และใช้ปุ่มลบเพื่อลบสินค้า
 5. ออกจากระบบผ่านปุ่ม **ออกจากระบบ**
 
-## 8. คำสั่งสำหรับพัฒนา
+## 8. บัญชีสำหรับทดสอบ API ด้วยสิทธิ์ ADMIN
 
-| คำสั่ง | รายละเอียด |
-| --- | --- |
-| `npm run dev` | เริ่มเซิร์ฟเวอร์สำหรับพัฒนา |
-| `npm run lint` | ตรวจสอบโค้ดด้วย ESLint |
-| `npm run build` | สร้าง Prisma Client และ build แอป |
-| `npm run start` | เริ่มแอปจาก production build |
-| `npx prisma studio --config prisma7.config.ts` | เปิด Prisma Studio สำหรับดูข้อมูล |
-| `npx prisma migrate deploy --config prisma7.config.ts` | นำ migrations ไปใช้กับฐานข้อมูล |
+โปรเจกต์นี้มีบัญชีสำหรับทดสอบ API ที่ต้องใช้สิทธิ์ผู้ดูแลระบบ (ADMIN) เพื่อให้อาจารย์หรือผู้ที่ต้องการทดสอบระบบสามารถทดลองเรียกใช้งาน API ผ่าน Apache JMeter ได้
 
-## 9. โครงสร้างไฟล์สำคัญ
+**ข้อมูลบัญชีทดสอบ**
 
-```text
-app/
-  api/products/           API สำหรับจัดการสินค้า
-  lib/prisma.ts           การเชื่อมต่อ Prisma Client
-  lib/validation.ts       Schema ตรวจสอบข้อมูลสินค้าด้วย Zod
-  products/               หน้าจัดการสินค้า
-  signup/                 หน้าสมัครสมาชิกและ Server Action
-  login/                  หน้าเข้าสู่ระบบ
-prisma/
-  schema.prisma           โครงสร้างข้อมูล
-  migrations-postgres/    migrations สำหรับ PostgreSQL
-```
+- **Email:** ใช้บัญชีทดสอบ ADMIN ที่ผู้จัดทำแจ้งให้เป็นการส่วนตัว
+- **Password:** ใช้รหัสผ่านที่ผู้จัดทำแจ้งให้เป็นการส่วนตัว
+- **Role:** `ADMIN`
 
+> หมายเหตุ: บัญชีดังกล่าวต้องมีอยู่ในฐานข้อมูลของเว็บไซต์ที่ต้องการทดสอบ และต้องได้รับสิทธิ์ ADMIN ก่อนใช้งานจริง ไม่ควรเผยแพร่รหัสผ่านของบัญชีผู้ดูแลระบบไว้ใน Repository สาธารณะ
 
+### 8.1 วิธีค้นหา Session Cookie จากหน้าเว็บไซต์
 
+หลังจากเข้าสู่ระบบด้วยบัญชี ADMIN แล้ว ให้ดำเนินการตามขั้นตอนต่อไปนี้
 
+1. เปิดเว็บไซต์ของโปรเจกต์ และเข้าสู่ระบบด้วยบัญชี ADMIN
+2. กด `F12` เพื่อเปิด Developer Tools ของเบราว์เซอร์
+3. เลือกแท็บ **Application**
+4. ที่แถบด้านซ้าย เลือก **Storage → Cookies**
+5. เลือกโดเมนของเว็บไซต์ที่เข้าสู่ระบบอยู่
+6. ค้นหาคุกกี้ที่ใช้เก็บ Session ของระบบยืนยันตัวตน แล้วคัดลอกค่าในช่อง **Value** ของคุกกี้นั้น
 
-## link
-- https://workspace-26dibv64c-p501501ps-projects.vercel.app/products
-,
-- https://github.com/p501501p/workspace
-,
-- https://console.neon.tech/app/projects/rough-sound-77604105/branches/br-morning-water-aol6dgoq/tables?database=neondb
-,
-- https://vercel.com/p501501ps-projects/workspace/settings/environment-variables
+ชื่อคุกกี้อาจแตกต่างกันตามเวอร์ชันและการตั้งค่าของระบบ จึงควรตรวจสอบชื่อจริงจากเว็บไซต์ที่กำลังทดสอบ
+
+### 8.2 การนำ Session Cookie ไปใช้ใน Apache JMeter
+
+1. เปิด Apache JMeter และเลือก Test Plan ที่ต้องการทดสอบ
+2. เพิ่ม **User Defined Variables** หากยังไม่มี
+3. สร้างตัวแปรชื่อ `Auth_cookie`
+4. นำค่า Value ของ Session Cookie ที่คัดลอกมาจากหน้าเว็บไซต์มาใส่ในตัวแปรนี้
+5. เพิ่ม **HTTP Header Manager** ให้กับ HTTP Request ที่ต้องใช้สิทธิ์ ADMIN
+6. กำหนด Header ดังนี้ โดยเปลี่ยนชื่อคุกกี้ให้ตรงกับที่พบในเว็บไซต์
+
+| Name | Value |
+|---|---|
+| `Cookie` | `ชื่อคุกกี้จริง=${Auth_cookie}` |
+
+ตัวอย่างรูปแบบค่า Header หากคุกกี้มีชื่อ `authjs.session-token`:
+
+`authjs.session-token=${Auth_cookie}`
+
+หลังจากตั้งค่าแล้ว สามารถส่ง HTTP Request ผ่าน JMeter และตรวจสอบผลลัพธ์ใน **View Results Tree** เพื่อดู Response Data และ Response Code ที่ API ตอบกลับมา
+
+### 8.3 ตัวอย่างขั้นตอนการหา Cookie
+
+<!-- เพิ่มไฟล์ GIF ที่แสดงขั้นตอนการเข้าสู่ระบบ เปิด F12 เลือก Application → Cookies คัดลอกค่า Value และตั้งค่าตัวแปร Auth_cookie ใน JMeter -->
+
+![ตัวอย่างการหา Session Cookie และตั้งค่า Auth_cookie ใน JMeter](./docs/images/jmeter-auth-cookie.gif)
+
+> **ข้อควรระวังด้านความปลอดภัย:** Session Cookie สามารถใช้แทนการยืนยันตัวตนของผู้ใช้ได้ ห้ามเผยแพร่ค่า Cookie จริงใน GIF ภาพหน้าจอ รายงาน หรือ Repository สาธารณะ ควรใช้บัญชีสำหรับทดสอบโดยเฉพาะ และออกจากระบบหรือยกเลิก Session หลังทดสอบเสร็จ
