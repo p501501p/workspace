@@ -155,7 +155,6 @@ Stockroom เป็นเว็บแอปพลิเคชันสำหร�
 - **Password:** admin123
 - **Role:** `ADMIN`
 
-> หมายเหตุ: บัญชีดังกล่าวต้องมีอยู่ในฐานข้อมูลของเว็บไซต์ที่ต้องการทดสอบ และต้องได้รับสิทธิ์ ADMIN ก่อนใช้งานจริง ไม่ควรเผยแพร่รหัสผ่านของบัญชีผู้ดูแลระบบไว้ใน Repository สาธารณะ
 
 ### 8.1 วิธีค้นหา Session Cookie จากหน้าเว็บไซต์
 
@@ -191,7 +190,10 @@ Stockroom เป็นเว็บแอปพลิเคชันสำหร�
 
 ### 8.3 ตัวอย่างขั้นตอนการหา Cookie
 
-<!-- เพิ่มไฟล์ GIF ที่แสดงขั้นตอนการเข้าสู่ระบบ เปิด F12 เลือก Application → Cookies คัดลอกค่า Value และตั้งค่าตัวแปร Auth_cookie ใน JMeter -->
+ภาพประกอบวิธีเข้าสู่ระบบและตั้งค่า Session Cookie ใน JMeter:
+
+<img width="1918" height="1078" alt="ตัวอย่างการตั้งค่า Session Cookie ใน JMeter" src="https://github.com/user-attachments/assets/c09c45f9-0466-4a69-b25c-89045f7591e0" />
+
 
 ![ตัวอย่างการหา Session Cookie และตั้งค่า Auth_cookie ใน JMeter](./docs/images/jmeter-auth-cookie.gif)
 
